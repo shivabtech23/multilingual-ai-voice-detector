@@ -361,17 +361,5 @@ This project was built for the [Hackathon Name] hackathon. The core innovation l
 
 MIT License - See LICENSE file for details
 
-## 🙏 Acknowledgments
-
-- **Wav2Vec2 Model**: [Gustking/wav2vec2-large-xlsr-deepfake-audio-classification](https://huggingface.co/Gustking/wav2vec2-large-xlsr-deepfake-audio-classification)
-- **Librosa**: Audio processing library
-- **FastAPI**: Modern web framework
-- **PyAV**: FFmpeg Python bindings
-
-## 📧 Contact
-
-For questions or collaboration:
-- **Demo**: [Railway Deployment URL]
-- **Documentation**: [API Docs](https://your-api.railway.app/docs)
 
 ---

@@ -45,7 +45,7 @@ app.include_router(api_router, prefix="")
 
 @app.get("/")
 async def root():
-    return {"message": "AI Voice Detector API", "endpoints": ["/health", "/detect"]}
+    return {"message": "AI Voice Detector API", "endpoints": ["/health", "/detect", "/api/voice-detection"]}
 
 if __name__ == "__main__":
     import uvicorn

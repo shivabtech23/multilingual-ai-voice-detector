@@ -348,18 +348,8 @@ chmod +x test_individual_files.sh
 ./test_individual_files.sh
 ```
 
-## 🤝 Contributing
 
-This project was built for the [Hackathon Name] hackathon. The core innovation lies in:
 
-1. **Hybrid Detection**: Combining AI with acoustic physics
-2. **Adaptive Thresholding**: Catching borderline AI voices
-3. **Multilingual Support**: XLS-R architecture for Indian languages
-4. **Production-Ready**: <300ms latency, 100% accuracy on test set
-
-## 📄 License
-
-MIT License - See LICENSE file for details
 
 
 ---

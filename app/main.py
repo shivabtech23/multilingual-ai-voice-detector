@@ -3,13 +3,14 @@ from contextlib import asynccontextmanager
 from app.api.routes import router as api_router
 from app.models.detector import VoiceDetector
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi import Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+import os
 
-# Lifecycle manager to preload model
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load model on startup
     print("Initializing application...")
     VoiceDetector.get_instance()
     yield
@@ -31,7 +32,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # Prompt example: "Invalid API key or malformed request"
     return JSONResponse(
         status_code=400,
         content={"status": "error", "message": "Invalid API key or malformed request"},
@@ -43,8 +43,13 @@ def health_check():
 
 app.include_router(api_router, prefix="")
 
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+
 @app.get("/")
 async def root():
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {"message": "AI Voice Detector API", "endpoints": ["/health", "/detect", "/api/voice-detection"]}
 
 if __name__ == "__main__":

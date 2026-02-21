@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Detector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: #888;
+            font-size: 0.95rem;
+        }
+        .card {
+            background: #15151e;
+            border: 1px solid #2a2a3a;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 520px;
+            margin: 20px auto;
+        }
+        .upload-zone {
+            border: 2px dashed #3a3a5a;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #7b2ff7;
+            background: rgba(123, 47, 247, 0.05);
+        }
+        .upload-zone.has-file {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .upload-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        .upload-text { color: #888; font-size: 0.9rem; }
+        .file-name {
+            color: #00d4ff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1e1e2e;
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+        select:focus { outline: none; border-color: #7b2ff7; }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+            color: white;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-card {
+            display: none;
+            margin-top: 20px;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .result-card.ai {
+            display: block;
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+        .result-card.human {
+            display: block;
+            background: rgba(52, 199, 89, 0.1);
+            border: 1px solid rgba(52, 199, 89, 0.3);
+        }
+        .result-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .result-card.ai .result-label { color: #ff3b30; }
+        .result-card.human .result-label { color: #34c759; }
+        .result-class {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .result-card.ai .result-class { color: #ff6b6b; }
+        .result-card.human .result-class { color: #69db7c; }
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #2a2a3a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        .result-card.ai .confidence-fill { background: linear-gradient(90deg, #ff3b30, #ff6b6b); }
+        .result-card.human .confidence-fill { background: linear-gradient(90deg, #34c759, #69db7c); }
+        .confidence-text {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .confidence-text span { color: #e0e0e0; font-weight: 600; }
+        .explanation {
+            margin-top: 12px;
+            font-size: 0.82rem;
+            color: #888;
+            line-height: 1.5;
+        }
+        .spinner {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #3a3a5a;
+            border-top: 3px solid #7b2ff7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        .loading .spinner { display: inline-block; }
+        .loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-msg {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 8px;
+            color: #ff6b6b;
+            font-size: 0.85rem;
+        }
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #555;
+            font-size: 0.8rem;
+        }
+        .langs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .lang-tag {
+            background: #1e1e2e;
+            border: 1px solid #2a2a3a;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI Voice Detector</h1>
+        <p>Detect AI-generated speech using hybrid deep learning</p>
+        <div class="langs">
+            <span class="lang-tag">English</span>
+            <span class="lang-tag">Hindi</span>
+            <span class="lang-tag">Tamil</span>
+            <span class="lang-tag">Telugu</span>
+            <span class="lang-tag">Malayalam</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon" id="uploadIcon">&#127908;</div>
+            <div class="upload-text" id="uploadText">Drop an MP3 file here or click to upload</div>
+            <div class="file-name" id="fileName"></div>
+        </div>
+        <input type="file" id="fileInput" accept=".mp3,audio/mpeg" hidden>
+
+        <div class="form-group">
+            <label>Language</label>
+            <select id="language">
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Malayalam">Malayalam</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" id="detectBtn" disabled onclick="detect()">
+            <span class="btn-text">Analyze Voice</span>
+            <span class="spinner"></span>
+        </button>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="result-card" id="resultCard">
+            <div class="result-label">Classification</div>
+            <div class="result-class" id="resultClass"></div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" id="confidenceFill"></div>
+            </div>
+            <div class="confidence-text">Confidence: <span id="confidenceVal"></span></div>
+            <div class="explanation" id="explanation"></div>
+        </div>
+    </div>
+
+    <div class="footer">Powered by Wav2Vec2 XLS-R + Acoustic Physics Analysis</div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadZone = document.getElementById('uploadZone');
+        const detectBtn = document.getElementById('detectBtn');
+        let selectedFile = null;
+
+        // Drag & drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.mp3')) {
+                showError('Please select an MP3 file');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('uploadIcon').textContent = '\u2705';
+            document.getElementById('uploadText').textContent = 'File selected';
+            document.getElementById('fileName').textContent = file.name;
+            uploadZone.classList.add('has-file');
+            detectBtn.disabled = false;
+            hideError();
+            document.getElementById('resultCard').className = 'result-card';
+        }
+
+        async function detect() {
+            if (!selectedFile) return;
+
+            detectBtn.disabled = true;
+            detectBtn.classList.add('loading');
+            hideError();
+            document.getElementById('resultCard').className = 'result-card';
+
+            try {
+                const base64 = await fileToBase64(selectedFile);
+                const language = document.getElementById('language').value;
+
+                const res = await fetch('/api/voice-detection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'demo_key_123'
+                    },
+                    body: JSON.stringify({
+                        language: language,
+                        audioFormat: 'mp3',
+                        audioBase64: base64
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    showResult(data);
+                } else {
+                    showError(data.message || 'Detection failed');
+                }
+            } catch (err) {
+                showError('Connection error: ' + err.message);
+            } finally {
+                detectBtn.disabled = false;
+                detectBtn.classList.remove('loading');
+            }
+        }
+
+        function showResult(data) {
+            const card = document.getElementById('resultCard');
+            const isAI = data.classification === 'AI_GENERATED';
+
+            card.className = 'result-card ' + (isAI ? 'ai' : 'human');
+            document.getElementById('resultClass').textContent = isAI ? 'AI Generated' : 'Human Voice';
+            document.getElementById('confidenceFill').style.width = (data.confidenceScore * 100) + '%';
+            document.getElementById('confidenceVal').textContent = (data.confidenceScore * 100).toFixed(1) + '%';
+            document.getElementById('explanation').textContent = data.explanation;
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
